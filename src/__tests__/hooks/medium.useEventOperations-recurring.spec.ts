@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
-import { addMockEvents, getMockEvents, setMockEvents } from '../../__mocks__/handlers';
+import { getMockEvents, setMockEvents } from '../../__mocks__/handlers';
 import { useEventOperations } from '../../hooks/useEventOperations';
 import { server } from '../../setupTests';
 import type { Event, EventForm, RepeatType } from '../../types';

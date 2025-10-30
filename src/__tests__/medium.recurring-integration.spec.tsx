@@ -6,8 +6,8 @@ import { http, HttpResponse } from 'msw';
 import { SnackbarProvider } from 'notistack';
 import { ReactElement } from 'react';
 
+import { addMockEvents, setMockEvents } from '../__mocks__/handlers';
 import App from '../App';
-import { addMockEvents, resetMockEvents, setMockEvents } from '../__mocks__/handlers';
 import { server } from '../setupTests';
 import type { Event, RepeatType } from '../types';
 

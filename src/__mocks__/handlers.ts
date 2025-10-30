@@ -66,14 +66,6 @@ export const handlers = [
     const { repeatId } = params;
     const updateData = (await request.json()) as Partial<Event>;
 
-    const updatedEvents = mockEvents.filter(
-      (event) => event.repeat.id === repeatId
-    );
-
-    if (updatedEvents.length === 0) {
-      return new HttpResponse(null, { status: 404 });
-    }
-
     mockEvents = mockEvents.map((event) => {
       if (event.repeat.id === repeatId) {
         return {
@@ -88,7 +80,9 @@ export const handlers = [
       return event;
     });
 
-    return HttpResponse.json({ events: updatedEvents });
+    return HttpResponse.json({
+      events: mockEvents.filter((event) => event.repeat.id === repeatId),
+    });
   }),
 
   http.delete('/api/events/:id', ({ params }) => {
@@ -108,9 +102,7 @@ export const handlers = [
     const { repeatId } = params;
     const initialLength = mockEvents.length;
 
-    mockEvents = mockEvents.filter(
-      (event) => event.repeat.id !== repeatId
-    );
+    mockEvents = mockEvents.filter((event) => event.repeat.id !== repeatId);
 
     if (mockEvents.length === initialLength) {
       return new HttpResponse(null, { status: 404 });

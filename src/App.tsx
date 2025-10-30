@@ -101,13 +101,8 @@ function App() {
     editEvent,
   } = useEventForm();
 
-  const {
-    events,
-    saveEvent,
-    deleteEvent,
-    updateRecurringEvents,
-    deleteRecurringEvents,
-  } = useEventOperations(Boolean(editingEvent), () => setEditingEvent(null));
+  const { events, saveEvent, deleteEvent, updateRecurringEvents, deleteRecurringEvents } =
+    useEventOperations(Boolean(editingEvent), () => setEditingEvent(null));
 
   const { notifications, notifiedEvents, setNotifications } = useNotifications(events);
   const { view, setView, currentDate, holidays, navigate } = useCalendarView();
@@ -230,7 +225,12 @@ function App() {
     };
 
     // 전체 반복 일정 수정인 경우
-    if (editingEvent && editingEvent.repeat.type !== 'none' && editingEvent.repeat.id && isRepeating) {
+    if (
+      editingEvent &&
+      editingEvent.repeat.type !== 'none' &&
+      editingEvent.repeat.id &&
+      isRepeating
+    ) {
       await updateRecurringEvents(editingEvent.repeat.id, eventData);
       resetForm();
       setEditingEvent(null);
@@ -564,10 +564,18 @@ function App() {
                   aria-labelledby="repeat-type-label"
                   aria-label="반복 유형"
                 >
-                  <MenuItem value="daily" aria-label="daily-option">매일</MenuItem>
-                  <MenuItem value="weekly" aria-label="weekly-option">매주</MenuItem>
-                  <MenuItem value="monthly" aria-label="monthly-option">매월</MenuItem>
-                  <MenuItem value="yearly" aria-label="yearly-option">매년</MenuItem>
+                  <MenuItem value="daily" aria-label="daily-option">
+                    매일
+                  </MenuItem>
+                  <MenuItem value="weekly" aria-label="weekly-option">
+                    매주
+                  </MenuItem>
+                  <MenuItem value="monthly" aria-label="monthly-option">
+                    매월
+                  </MenuItem>
+                  <MenuItem value="yearly" aria-label="yearly-option">
+                    매년
+                  </MenuItem>
                 </Select>
               </FormControl>
               <Stack direction="row" spacing={2}>
@@ -677,8 +685,7 @@ function App() {
                     <Typography>카테고리: {event.category}</Typography>
                     {event.repeat.type !== 'none' && (
                       <Typography>
-                        반복:{' '}
-                        {event.repeat.type === 'daily' && '매일'}
+                        반복: {event.repeat.type === 'daily' && '매일'}
                         {event.repeat.type === 'weekly' && '매주'}
                         {event.repeat.type === 'monthly' && '매월'}
                         {event.repeat.type === 'yearly' && '매년'}
