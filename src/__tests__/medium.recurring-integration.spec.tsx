@@ -7,6 +7,7 @@ import { SnackbarProvider } from 'notistack';
 import { ReactElement } from 'react';
 
 import App from '../App';
+import { addMockEvents, resetMockEvents, setMockEvents } from '../__mocks__/handlers';
 import { server } from '../setupTests';
 import type { Event, RepeatType } from '../types';
 
@@ -118,6 +119,7 @@ describe('반복 일정 통합 테스트', () => {
     });
 
     it('매일 반복 일정 생성 및 캘린더 표시', async () => {
+      setMockEvents([]); // 빈 상태로 시작
       server.use(
         http.post('/api/events-list', async ({ request }) => {
           const { events } = (await request.json()) as { events: Event[] };
@@ -127,6 +129,7 @@ describe('반복 일정 통합 테스트', () => {
             id: `daily-${index + 1}`,
             repeat: { ...event.repeat, id: repeatId },
           }));
+          addMockEvents(newEvents); // mockEvents 업데이트
           return HttpResponse.json({ events: newEvents }, { status: 201 });
         })
       );
@@ -151,10 +154,11 @@ describe('반복 일정 통합 테스트', () => {
 
       const eventList = within(screen.getByTestId('event-list'));
       expect(eventList.getAllByText('매일 스탠드업')).toHaveLength(7);
-      expect(eventList.getByText(/반복: 매일/)).toBeInTheDocument();
+      expect(eventList.getAllByText(/반복: 매일/).length).toBeGreaterThan(0);
     });
 
     it('매주 반복 일정 생성 및 Repeat 아이콘 표시', async () => {
+      setMockEvents([]); // 빈 상태로 시작
       server.use(
         http.post('/api/events-list', async ({ request }) => {
           const { events } = (await request.json()) as { events: Event[] };
@@ -164,6 +168,7 @@ describe('반복 일정 통합 테스트', () => {
             id: `weekly-${index + 1}`,
             repeat: { ...event.repeat, id: repeatId },
           }));
+          addMockEvents(newEvents); // mockEvents 업데이트
           return HttpResponse.json({ events: newEvents }, { status: 201 });
         })
       );
@@ -192,6 +197,7 @@ describe('반복 일정 통합 테스트', () => {
 
     it('매월 반복 일정 생성 (31일 엣지 케이스)', async () => {
       vi.setSystemTime(new Date('2025-01-01'));
+      setMockEvents([]); // 빈 상태로 시작
 
       server.use(
         http.post('/api/events-list', async ({ request }) => {
@@ -202,6 +208,7 @@ describe('반복 일정 통합 테스트', () => {
             id: `monthly-${index + 1}`,
             repeat: { ...event.repeat, id: repeatId },
           }));
+          addMockEvents(newEvents); // mockEvents 업데이트
           return HttpResponse.json({ events: newEvents }, { status: 201 });
         })
       );
@@ -263,9 +270,11 @@ describe('반복 일정 통합 테스트', () => {
 
     it('생성된 날짜가 0개일 때 에러 메시지', async () => {
       vi.setSystemTime(new Date('2024-02-29'));
+      setMockEvents([]); // 빈 상태로 시작
 
       server.use(
         http.post('/api/events-list', async () => {
+          // 빈 배열 반환, mockEvents 업데이트 불필요
           return HttpResponse.json({ events: [] }, { status: 201 });
         })
       );
@@ -301,19 +310,14 @@ describe('반복 일정 통합 테스트', () => {
 
   describe('반복 일정 표시', () => {
     it('주간 뷰에서 Repeat 아이콘 표시', async () => {
-      server.use(
-        http.get('/api/events', () => {
-          return HttpResponse.json({
-            events: [
-              createRecurringEvent('weekly', {
-                id: '1',
-                date: '2025-10-01',
-                title: '주간 회의',
-              }),
-            ],
-          });
-        })
-      );
+      const initialEvents = [
+        createRecurringEvent('weekly', {
+          id: '1',
+          date: '2025-10-01',
+          title: '주간 회의',
+        }),
+      ];
+      setMockEvents(initialEvents);
 
       const { user } = setup(<App />);
 
@@ -328,24 +332,19 @@ describe('반복 일정 통합 테스트', () => {
     });
 
     it('월간 뷰에서 Repeat 아이콘 표시', async () => {
-      server.use(
-        http.get('/api/events', () => {
-          return HttpResponse.json({
-            events: [
-              createRecurringEvent('daily', {
-                id: '1',
-                date: '2025-10-01',
-                title: '매일 회의',
-              }),
-              createRecurringEvent('daily', {
-                id: '2',
-                date: '2025-10-02',
-                title: '매일 회의',
-              }),
-            ],
-          });
-        })
-      );
+      const initialEvents = [
+        createRecurringEvent('daily', {
+          id: '1',
+          date: '2025-10-01',
+          title: '매일 회의',
+        }),
+        createRecurringEvent('daily', {
+          id: '2',
+          date: '2025-10-02',
+          title: '매일 회의',
+        }),
+      ];
+      setMockEvents(initialEvents);
 
       setup(<App />);
 
@@ -357,25 +356,20 @@ describe('반복 일정 통합 테스트', () => {
     });
 
     it('일정 목록에서 반복 정보 표시', async () => {
-      server.use(
-        http.get('/api/events', () => {
-          return HttpResponse.json({
-            events: [
-              createRecurringEvent('daily', {
-                id: '1',
-                date: '2025-10-01',
-                title: '매일 회의',
-                repeat: {
-                  type: 'daily',
-                  interval: 1,
-                  endDate: '2025-10-07',
-                  id: 'repeat-id-1',
-                },
-              }),
-            ],
-          });
-        })
-      );
+      const initialEvents = [
+        createRecurringEvent('daily', {
+          id: '1',
+          date: '2025-10-01',
+          title: '매일 회의',
+          repeat: {
+            type: 'daily',
+            interval: 1,
+            endDate: '2025-10-07',
+            id: 'repeat-id-1',
+          },
+        }),
+      ];
+      setMockEvents(initialEvents);
 
       setup(<App />);
 
@@ -389,19 +383,14 @@ describe('반복 일정 통합 테스트', () => {
 
   describe('반복 일정 수정', () => {
     it('수정 시 Dialog 표시 확인', async () => {
-      server.use(
-        http.get('/api/events', () => {
-          return HttpResponse.json({
-            events: [
-              createRecurringEvent('daily', {
-                id: '1',
-                date: '2025-10-01',
-                title: '매일 회의',
-              }),
-            ],
-          });
-        })
-      );
+      const initialEvents = [
+        createRecurringEvent('daily', {
+          id: '1',
+          date: '2025-10-01',
+          title: '매일 회의',
+        }),
+      ];
+      setMockEvents(initialEvents);
 
       const { user } = setup(<App />);
 
@@ -417,25 +406,30 @@ describe('반복 일정 통합 테스트', () => {
     });
 
     it('"예" 선택 - 단일 일정 수정 (반복 해제)', async () => {
-      server.use(
-        http.get('/api/events', () => {
-          return HttpResponse.json({
-            events: [
-              createRecurringEvent('daily', {
-                id: '1',
-                date: '2025-10-01',
-                title: '매일 회의',
-              }),
-              createRecurringEvent('daily', {
-                id: '2',
-                date: '2025-10-02',
-                title: '매일 회의',
-              }),
-            ],
-          });
+      const initialEvents = [
+        createRecurringEvent('daily', {
+          id: '1',
+          date: '2025-10-01',
+          title: '매일 회의',
         }),
-        http.put('/api/events/:id', async ({ request }) => {
+        createRecurringEvent('daily', {
+          id: '2',
+          date: '2025-10-02',
+          title: '매일 회의',
+        }),
+      ];
+      setMockEvents(initialEvents);
+
+      server.use(
+        http.put('/api/events/:id', async ({ request, params }) => {
           const updatedEvent = (await request.json()) as Event;
+          const { id } = params;
+          const currentEvents = [...initialEvents];
+          const index = currentEvents.findIndex((e) => e.id === id);
+          if (index !== -1) {
+            currentEvents[index] = { ...currentEvents[index], ...updatedEvent };
+          }
+          setMockEvents(currentEvents);
           return HttpResponse.json(updatedEvent);
         })
       );
@@ -460,24 +454,31 @@ describe('반복 일정 통합 테스트', () => {
     });
 
     it('"아니오" 선택 - 전체 반복 일정 수정', async () => {
-      server.use(
-        http.get('/api/events', () => {
-          return HttpResponse.json({
-            events: [
-              createRecurringEvent('daily', {
-                id: '1',
-                date: '2025-10-01',
-                title: '매일 회의',
-              }),
-              createRecurringEvent('daily', {
-                id: '2',
-                date: '2025-10-02',
-                title: '매일 회의',
-              }),
-            ],
-          });
+      const initialEvents = [
+        createRecurringEvent('daily', {
+          id: '1',
+          date: '2025-10-01',
+          title: '매일 회의',
         }),
-        http.put('/api/recurring-events/:repeatId', async () => {
+        createRecurringEvent('daily', {
+          id: '2',
+          date: '2025-10-02',
+          title: '매일 회의',
+        }),
+      ];
+      setMockEvents(initialEvents);
+
+      server.use(
+        http.put('/api/recurring-events/:repeatId', async ({ request, params }) => {
+          const updateData = (await request.json()) as Partial<Event>;
+          const { repeatId } = params;
+          const currentEvents = [...initialEvents].map((event) => {
+            if (event.repeat.id === repeatId) {
+              return { ...event, ...updateData };
+            }
+            return event;
+          });
+          setMockEvents(currentEvents);
           return HttpResponse.json({ updated: true });
         })
       );
@@ -504,19 +505,14 @@ describe('반복 일정 통합 테스트', () => {
 
   describe('반복 일정 삭제', () => {
     it('삭제 시 Dialog 표시 확인', async () => {
-      server.use(
-        http.get('/api/events', () => {
-          return HttpResponse.json({
-            events: [
-              createRecurringEvent('daily', {
-                id: '1',
-                date: '2025-10-01',
-                title: '매일 회의',
-              }),
-            ],
-          });
-        })
-      );
+      const initialEvents = [
+        createRecurringEvent('daily', {
+          id: '1',
+          date: '2025-10-01',
+          title: '매일 회의',
+        }),
+      ];
+      setMockEvents(initialEvents);
 
       const { user } = setup(<App />);
 
@@ -532,24 +528,25 @@ describe('반복 일정 통합 테스트', () => {
     });
 
     it('"예" 선택 - 단일 일정 삭제', async () => {
-      server.use(
-        http.get('/api/events', () => {
-          return HttpResponse.json({
-            events: [
-              createRecurringEvent('daily', {
-                id: '1',
-                date: '2025-10-01',
-                title: '매일 회의',
-              }),
-              createRecurringEvent('daily', {
-                id: '2',
-                date: '2025-10-02',
-                title: '매일 회의',
-              }),
-            ],
-          });
+      const initialEvents = [
+        createRecurringEvent('daily', {
+          id: '1',
+          date: '2025-10-01',
+          title: '매일 회의',
         }),
-        http.delete('/api/events/:id', () => {
+        createRecurringEvent('daily', {
+          id: '2',
+          date: '2025-10-02',
+          title: '매일 회의',
+        }),
+      ];
+      setMockEvents(initialEvents);
+
+      server.use(
+        http.delete('/api/events/:id', ({ params }) => {
+          const { id } = params;
+          const currentEvents = initialEvents.filter((e) => e.id !== id);
+          setMockEvents(currentEvents);
           return new HttpResponse(null, { status: 204 });
         })
       );
@@ -569,24 +566,25 @@ describe('반복 일정 통합 테스트', () => {
     });
 
     it('"아니오" 선택 - 전체 반복 일정 삭제', async () => {
-      server.use(
-        http.get('/api/events', () => {
-          return HttpResponse.json({
-            events: [
-              createRecurringEvent('daily', {
-                id: '1',
-                date: '2025-10-01',
-                title: '매일 회의',
-              }),
-              createRecurringEvent('daily', {
-                id: '2',
-                date: '2025-10-02',
-                title: '매일 회의',
-              }),
-            ],
-          });
+      const initialEvents = [
+        createRecurringEvent('daily', {
+          id: '1',
+          date: '2025-10-01',
+          title: '매일 회의',
         }),
-        http.delete('/api/recurring-events/:repeatId', () => {
+        createRecurringEvent('daily', {
+          id: '2',
+          date: '2025-10-02',
+          title: '매일 회의',
+        }),
+      ];
+      setMockEvents(initialEvents);
+
+      server.use(
+        http.delete('/api/recurring-events/:repeatId', ({ params }) => {
+          const { repeatId } = params;
+          const currentEvents = initialEvents.filter((e) => e.repeat.id !== repeatId);
+          setMockEvents(currentEvents);
           return new HttpResponse(null, { status: 204 });
         })
       );

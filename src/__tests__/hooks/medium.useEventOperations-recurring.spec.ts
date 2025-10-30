@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
+import { addMockEvents, getMockEvents, setMockEvents } from '../../__mocks__/handlers';
 import { useEventOperations } from '../../hooks/useEventOperations';
 import { server } from '../../setupTests';
 import type { Event, EventForm, RepeatType } from '../../types';
@@ -46,18 +47,22 @@ const createRecurringEvent = (repeatType: RepeatType, overrides: Partial<Event> 
 describe('useEventOperations - 반복 일정 기능', () => {
   describe('반복 일정 생성 (saveEvent with repeat)', () => {
     it('매일 반복 일정을 생성한다', async () => {
+      setMockEvents([]); // 빈 배열로 초기화
+
       server.use(
         http.post('/api/events-list', async ({ request }) => {
           const { events } = (await request.json()) as { events: Event[] };
           const repeatId = 'repeat-id-1';
+          const currentEvents = getMockEvents();
           const newEvents = events.map((event, index) => ({
             ...event,
-            id: `event-${index + 1}`,
+            id: `event-${currentEvents.length + index + 1}`,
             repeat: {
               ...event.repeat,
               id: repeatId,
             },
           }));
+          setMockEvents([...currentEvents, ...newEvents]);
           return HttpResponse.json({ events: newEvents }, { status: 201 });
         })
       );
@@ -94,18 +99,22 @@ describe('useEventOperations - 반복 일정 기능', () => {
     });
 
     it('매주 반복 일정을 생성한다', async () => {
+      setMockEvents([]); // 빈 배열로 초기화
+
       server.use(
         http.post('/api/events-list', async ({ request }) => {
           const { events } = (await request.json()) as { events: Event[] };
           const repeatId = 'repeat-id-2';
+          const currentEvents = getMockEvents();
           const newEvents = events.map((event, index) => ({
             ...event,
-            id: `event-${index + 1}`,
+            id: `event-${currentEvents.length + index + 1}`,
             repeat: {
               ...event.repeat,
               id: repeatId,
             },
           }));
+          setMockEvents([...currentEvents, ...newEvents]);
           return HttpResponse.json({ events: newEvents }, { status: 201 });
         })
       );
@@ -150,14 +159,16 @@ describe('useEventOperations - 반복 일정 기능', () => {
         http.post('/api/events-list', async ({ request }) => {
           const { events } = (await request.json()) as { events: Event[] };
           const repeatId = 'repeat-id-3';
+          const currentEvents = getMockEvents();
           const newEvents = events.map((event, index) => ({
             ...event,
-            id: `event-${index + 1}`,
+            id: `event-${currentEvents.length + index + 1}`,
             repeat: {
               ...event.repeat,
               id: repeatId,
             },
           }));
+          setMockEvents([...currentEvents, ...newEvents]);
           return HttpResponse.json({ events: newEvents }, { status: 201 });
         })
       );
@@ -194,18 +205,22 @@ describe('useEventOperations - 반복 일정 기능', () => {
     });
 
     it('매년 반복 일정을 생성한다', async () => {
+      setMockEvents([]); // 빈 배열로 초기화
+
       server.use(
         http.post('/api/events-list', async ({ request }) => {
           const { events } = (await request.json()) as { events: Event[] };
           const repeatId = 'repeat-id-4';
+          const currentEvents = getMockEvents();
           const newEvents = events.map((event, index) => ({
             ...event,
-            id: `event-${index + 1}`,
+            id: `event-${currentEvents.length + index + 1}`,
             repeat: {
               ...event.repeat,
               id: repeatId,
             },
           }));
+          setMockEvents([...currentEvents, ...newEvents]);
           return HttpResponse.json({ events: newEvents }, { status: 201 });
         })
       );
@@ -330,20 +345,31 @@ describe('useEventOperations - 반복 일정 기능', () => {
         }),
       ];
 
+      setMockEvents(mockEvents);
+
       server.use(
-        http.get('/api/events', () => {
-          return HttpResponse.json({ events: mockEvents });
-        }),
         http.put('/api/recurring-events/:repeatId', async ({ request }) => {
           const updateData = (await request.json()) as Partial<Event>;
+          const currentEvents = getMockEvents();
 
-          const updatedEvents = mockEvents.map((event) => ({
-            ...event,
-            ...updateData,
-            repeat: event.repeat,
-          }));
+          const updatedEvents = currentEvents.map((event) => {
+            if (event.repeat.id === 'repeat-id-1') {
+              return {
+                ...event,
+                ...updateData,
+                repeat: {
+                  ...event.repeat,
+                  ...(updateData.repeat || {}),
+                },
+              };
+            }
+            return event;
+          });
 
-          return HttpResponse.json({ events: updatedEvents });
+          setMockEvents(updatedEvents);
+          return HttpResponse.json({
+            events: updatedEvents.filter((e) => e.repeat.id === 'repeat-id-1'),
+          });
         })
       );
 
@@ -374,17 +400,31 @@ describe('useEventOperations - 반복 일정 기능', () => {
         }),
       ];
 
+      setMockEvents(mockEvents);
+
       server.use(
-        http.get('/api/events', () => {
-          return HttpResponse.json({ events: mockEvents });
-        }),
         http.put('/api/recurring-events/:repeatId', async ({ request }) => {
           const updateData = (await request.json()) as Partial<Event>;
-          const updatedEvents = mockEvents.map((event) => ({
-            ...event,
-            ...updateData,
-          }));
-          return HttpResponse.json({ events: updatedEvents });
+          const currentEvents = getMockEvents();
+
+          const updatedEvents = currentEvents.map((event) => {
+            if (event.repeat.id === 'repeat-id-1') {
+              return {
+                ...event,
+                ...updateData,
+                repeat: {
+                  ...event.repeat,
+                  ...(updateData.repeat || {}),
+                },
+              };
+            }
+            return event;
+          });
+
+          setMockEvents(updatedEvents);
+          return HttpResponse.json({
+            events: updatedEvents.filter((e) => e.repeat.id === 'repeat-id-1'),
+          });
         })
       );
 
@@ -410,20 +450,30 @@ describe('useEventOperations - 반복 일정 기능', () => {
         }),
       ];
 
+      setMockEvents(mockEvents);
+
       server.use(
-        http.get('/api/events', () => {
-          return HttpResponse.json({ events: mockEvents });
-        }),
         http.put('/api/recurring-events/:repeatId', async ({ request }) => {
           const updateData = (await request.json()) as Partial<Event>;
-          const updatedEvents = mockEvents.map((event) => ({
-            ...event,
-            repeat: {
-              ...event.repeat,
-              ...(updateData.repeat || {}),
-            },
-          }));
-          return HttpResponse.json({ events: updatedEvents });
+          const currentEvents = getMockEvents();
+
+          const updatedEvents = currentEvents.map((event) => {
+            if (event.repeat.id === 'repeat-id-1') {
+              return {
+                ...event,
+                repeat: {
+                  ...event.repeat,
+                  ...(updateData.repeat || {}),
+                },
+              };
+            }
+            return event;
+          });
+
+          setMockEvents(updatedEvents);
+          return HttpResponse.json({
+            events: updatedEvents.filter((e) => e.repeat.id === 'repeat-id-1'),
+          });
         })
       );
 
@@ -548,13 +598,22 @@ describe('useEventOperations - 반복 일정 기능', () => {
         }),
       ];
 
+      setMockEvents(mockEvents);
+
       server.use(
-        http.get('/api/events', () => {
-          return HttpResponse.json({ events: mockEvents });
-        }),
-        http.put('/api/events/:id', async ({ request }) => {
+        http.put('/api/events/:id', async ({ params, request }) => {
+          const { id } = params;
           const updatedEvent = (await request.json()) as Event;
-          return HttpResponse.json(updatedEvent);
+          const currentEvents = getMockEvents();
+          const index = currentEvents.findIndex((event) => event.id === id);
+
+          if (index !== -1) {
+            currentEvents[index] = { ...currentEvents[index], ...updatedEvent };
+            setMockEvents([...currentEvents]);
+            return HttpResponse.json(currentEvents[index]);
+          }
+
+          return new HttpResponse(null, { status: 404 });
         })
       );
 

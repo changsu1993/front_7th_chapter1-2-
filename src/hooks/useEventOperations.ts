@@ -58,6 +58,12 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
         throw new Error('Failed to save recurring events');
       }
 
+      const data = await response.json();
+      if (!data.events || data.events.length === 0) {
+        enqueueSnackbar('선택한 조건에 맞는 날짜가 없습니다.', { variant: 'error' });
+        return;
+      }
+
       await fetchEvents();
       onSave?.();
       enqueueSnackbar('일정이 추가되었습니다.', { variant: 'success' });
