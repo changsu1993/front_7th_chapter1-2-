@@ -91,10 +91,7 @@ const createMockEvent = (overrides: Partial<Event> = {}): Event => ({
   ...overrides,
 });
 
-const createRecurringEvent = (
-  repeatType: RepeatType,
-  overrides: Partial<Event> = {}
-): Event =>
+const createRecurringEvent = (repeatType: RepeatType, overrides: Partial<Event> = {}): Event =>
   createMockEvent({
     repeat: {
       type: repeatType,
@@ -243,9 +240,7 @@ describe('반복 일정 통합 테스트', () => {
 
       await user.click(screen.getByTestId('event-submit-button'));
 
-      expect(
-        await screen.findByText('종료일은 시작일 이후여야 합니다.')
-      ).toBeInTheDocument();
+      expect(await screen.findByText('종료일은 시작일 이후여야 합니다.')).toBeInTheDocument();
     });
 
     it('반복 종료일 유효성 검사 - 2025-12-31 초과', async () => {
@@ -300,9 +295,7 @@ describe('반복 일정 통합 테스트', () => {
 
       await user.click(screen.getByTestId('event-submit-button'));
 
-      expect(
-        await screen.findByText('선택한 조건에 맞는 날짜가 없습니다.')
-      ).toBeInTheDocument();
+      expect(await screen.findByText('선택한 조건에 맞는 날짜가 없습니다.')).toBeInTheDocument();
     });
   });
 
@@ -326,9 +319,7 @@ describe('반복 일정 통합 테스트', () => {
 
       await screen.findByText('일정 로딩 완료!');
 
-      await user.click(
-        within(screen.getByLabelText('뷰 타입 선택')).getByRole('combobox')
-      );
+      await user.click(within(screen.getByLabelText('뷰 타입 선택')).getByRole('combobox'));
       await user.click(screen.getByRole('option', { name: 'week-option' }));
 
       const weekView = screen.getByTestId('week-view');
@@ -486,8 +477,7 @@ describe('반복 일정 통합 테스트', () => {
             ],
           });
         }),
-        http.put('/api/recurring-events/:repeatId', async ({ request }) => {
-          const _updateData = (await request.json()) as Partial<Event>;
+        http.put('/api/recurring-events/:repeatId', async () => {
           return HttpResponse.json({ updated: true });
         })
       );

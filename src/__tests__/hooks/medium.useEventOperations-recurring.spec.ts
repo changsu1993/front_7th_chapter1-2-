@@ -32,10 +32,7 @@ const createMockEvent = (overrides: Partial<Event> = {}): Event => ({
   ...overrides,
 });
 
-const createRecurringEvent = (
-  repeatType: RepeatType,
-  overrides: Partial<Event> = {}
-): Event =>
+const createRecurringEvent = (repeatType: RepeatType, overrides: Partial<Event> = {}): Event =>
   createMockEvent({
     repeat: {
       type: repeatType,

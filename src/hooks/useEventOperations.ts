@@ -1,8 +1,8 @@
 import { useSnackbar } from 'notistack';
 import { useEffect, useState } from 'react';
 
-import { generateRepeatDates } from '../utils/repeatUtils';
 import { Event, EventForm } from '../types';
+import { generateRepeatDates } from '../utils/repeatUtils';
 
 export const useEventOperations = (editing: boolean, onSave?: () => void) => {
   const [events, setEvents] = useState<Event[]>([]);
