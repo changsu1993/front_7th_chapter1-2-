@@ -5,6 +5,13 @@ import { getTimeErrorMessage } from '../utils/timeValidation';
 
 type TimeErrorRecord = Record<'startTimeError' | 'endTimeError', string | null>;
 
+const DEFAULT_VALUES = {
+  CATEGORY: '업무',
+  NOTIFICATION_TIME: 10,
+  REPEAT_INTERVAL: 1,
+  REPEAT_TYPE: 'none' as RepeatType,
+} as const;
+
 export const useEventForm = (initialEvent?: Event) => {
   const [title, setTitle] = useState(initialEvent?.title || '');
   const [date, setDate] = useState(initialEvent?.date || '');
@@ -12,14 +19,20 @@ export const useEventForm = (initialEvent?: Event) => {
   const [endTime, setEndTime] = useState(initialEvent?.endTime || '');
   const [description, setDescription] = useState(initialEvent?.description || '');
   const [location, setLocation] = useState(initialEvent?.location || '');
-  const [category, setCategory] = useState(initialEvent?.category || '업무');
+  const [category, setCategory] = useState(initialEvent?.category || DEFAULT_VALUES.CATEGORY);
   const [isRepeating, setIsRepeating] = useState(
     initialEvent ? initialEvent.repeat.type !== 'none' : false
   );
-  const [repeatType, setRepeatType] = useState<RepeatType>(initialEvent?.repeat.type || 'none');
-  const [repeatInterval, setRepeatInterval] = useState(initialEvent?.repeat.interval || 1);
+  const [repeatType, setRepeatType] = useState<RepeatType>(
+    initialEvent?.repeat.type || DEFAULT_VALUES.REPEAT_TYPE
+  );
+  const [repeatInterval, setRepeatInterval] = useState(
+    initialEvent?.repeat.interval || DEFAULT_VALUES.REPEAT_INTERVAL
+  );
   const [repeatEndDate, setRepeatEndDate] = useState(initialEvent?.repeat.endDate || '');
-  const [notificationTime, setNotificationTime] = useState(initialEvent?.notificationTime || 10);
+  const [notificationTime, setNotificationTime] = useState(
+    initialEvent?.notificationTime || DEFAULT_VALUES.NOTIFICATION_TIME
+  );
 
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
@@ -47,12 +60,12 @@ export const useEventForm = (initialEvent?: Event) => {
     setEndTime('');
     setDescription('');
     setLocation('');
-    setCategory('업무');
+    setCategory(DEFAULT_VALUES.CATEGORY);
     setIsRepeating(false);
-    setRepeatType('none');
-    setRepeatInterval(1);
+    setRepeatType(DEFAULT_VALUES.REPEAT_TYPE);
+    setRepeatInterval(DEFAULT_VALUES.REPEAT_INTERVAL);
     setRepeatEndDate('');
-    setNotificationTime(10);
+    setNotificationTime(DEFAULT_VALUES.NOTIFICATION_TIME);
   };
 
   const editEvent = (event: Event) => {

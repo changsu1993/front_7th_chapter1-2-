@@ -1,5 +1,8 @@
 import type { RepeatType } from '../types';
 
+const MONTHS_PER_YEAR = 12;
+const MAX_LEAP_YEAR_SKIP_ATTEMPTS = 400; // 윤년 주기 (최대 스킵 시도 횟수)
+
 /**
  * 주어진 연도가 윤년인지 확인합니다.
  */
@@ -63,8 +66,8 @@ function addMonths(date: Date, months: number): Date | null {
   let newYear = year;
 
   // 연도 조정
-  while (newMonth >= 12) {
-    newMonth -= 12;
+  while (newMonth >= MONTHS_PER_YEAR) {
+    newMonth -= MONTHS_PER_YEAR;
     newYear += 1;
   }
 
@@ -168,7 +171,7 @@ export function generateRepeatDates(
       let next = addYears(start, yearIndex);
 
       // 해당 연도에 그 날짜가 없으면(예: 2월 29일) 윤년이 될 때까지 스킵
-      while (next === null && yearIndex < 400) {
+      while (next === null && yearIndex < MAX_LEAP_YEAR_SKIP_ATTEMPTS) {
         yearIndex += 1;
         next = addYears(start, yearIndex);
       }
